@@ -13,15 +13,23 @@ use SilverStripe\Core\Path;
 use SilverStripe\View\Requirements;
 use SilverStripe\View\SSViewer;
 
-class WkFile {
+class WkFile 
+{
 
 	protected $folder;
 	protected $options;
+	protected $createProtected = false;
 
 	function __construct($type) {
 		$this->autoSetProxy();
 		$this->autoSetBinary($type);
 		$this->autoSetBasicAuth();
+	}
+
+	public function setCreateProtected($val)
+	{
+		$this->createProtected = (bool)$val;
+		return $this;
 	}
 
 	/**
@@ -111,11 +119,18 @@ class WkFile {
 	 */
 	protected function createFile(string $fileName, string $fileClass, array $extraData = []) {
 		$folder = $this->getFolder();
+		$config = [];
+		if ($this->createProtected) {
+			$config['visibility'] = AssetStore::VISIBILITY_PROTECTED;
+		}
 
 		$file = new $fileClass();
 		$file->setFromLocalFile(
 			$this->getServerPath(true) . $fileName,
-			$folder->getFilename() . $fileName
+			$folder->getFilename() . $fileName,
+			null,
+			null,
+			$config
 		);
 		$file->ParentID = $folder->ID;
 
